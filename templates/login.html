@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - Churro's Recipes</title>
+  <style>
+    :root {
+      --bg-dark: #1e1e2f;
+      --card-dark: #2a2a3d;
+      --accent: #ff6b6b;
+      --text-light: #f0f0f0;
+      --text-muted: #a0a0b0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: var(--text-light);
+    }
+
+    .login-container {
+      background-color: var(--card-dark);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .login-container:hover {
+      transform: translateY(-2px);
+    }
+
+    h2 {
+      margin-bottom: 30px;
+      font-size: 28px;
+      color: var(--accent);
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    input {
+      background-color: #3a3a4d;
+      color: var(--text-light);
+      border: 1px solid #444;
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    button {
+      background-color: var(--accent);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ff4c4c;
+    }
+
+    p {
+      margin-top: 20px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>🔐 Login to Churro's Recipes</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="messages">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <form method="POST">
+      <input name="username" placeholder="Username" required />
+      <input name="password" type="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <a href="{{ url_for('auth.forgot_password') }}" style="display: block; margin-top: -5px; margin-bottom: 20px;">Forgot Password?</a>
+
+    <p>
+      Don't have an account?
+      <a href="{{ url_for('auth.signup') }}">Sign up here</a>
+    </p>
+  </div>
+</body>
+</html>

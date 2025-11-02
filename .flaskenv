@@ -1,0 +1,2 @@
+FLASK_APP=recipe_scraper_local.py
+FLASK_ENV=development

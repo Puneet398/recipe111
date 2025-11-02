@@ -1,0 +1,35 @@
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/rfc/cookie_spec.html
+# This is a generated file! Do not edit.
+
+www.bbcgoodfood.com	FALSE	/	FALSE	1773335799	blaize_session	5e844cd3-c717-45db-89dd-66a03eef8bd1
+www.bbcgoodfood.com	FALSE	/	FALSE	1761687686	lux_uid	176168588619817592
+www.bbcgoodfood.com	FALSE	/	FALSE	1761686786	_dd_s	logs=1&id=a90ddb09-8e4f-440b-9506-121d352d9f1b&created=1761685886209&expire=1761686786209
+.bbcgoodfood.com	TRUE	/	TRUE	1769461890	_gtmeec	e30%3D
+.bbcgoodfood.com	TRUE	/	FALSE	1796245901	_ga	GA1.1.105557950.1761685889
+.bbcgoodfood.com	TRUE	/	TRUE	1793221901	consentUUID	489f8416-1dda-47ba-9f09-16f71a5676f9_49
+.bbcgoodfood.com	TRUE	/	TRUE	1793221901	consentDate	2025-10-28T21:11:48.158Z
+.bbcgoodfood.com	TRUE	/	TRUE	1761693101	IM_SP_GA	1
+.bbcgoodfood.com	TRUE	/	TRUE	1777410685	permutive-id	76798e90-0243-40fa-bf02-eaa0b77eb380
+.bbcgoodfood.com	TRUE	/	FALSE	1796245901	_ga_DVDVDHZWPB	GS2.1.s1761685888$o1$g0$t1761685901$j60$l0$h1409723097
+www.bbcgoodfood.com	FALSE	/	FALSE	1761706001	ccsid	4c582fc2-ac13-49a1-9bc1-6a38579567db
+www.bbcgoodfood.com	FALSE	/	FALSE	1762290702	AWSALB	asQCP286qlosWgjkstOR0tZ8jtNk1Scx+jcltez8tyXlZW1WaPQLTaS06fiyeHryqasIVUW1hMiMhkPbbtGIaf8P3lqOWQkuMb0G6/CXrLrI4vG1KtW8bhqVbt74
+www.bbcgoodfood.com	FALSE	/	TRUE	1762290702	AWSALBCORS	asQCP286qlosWgjkstOR0tZ8jtNk1Scx+jcltez8tyXlZW1WaPQLTaS06fiyeHryqasIVUW1hMiMhkPbbtGIaf8P3lqOWQkuMb0G6/CXrLrI4vG1KtW8bhqVbt74
+.bbcgoodfood.com	TRUE	/	TRUE	1796245902	FPID	FPID2.2.JPcETYB7M%2Fa8DncepLTykSItPZ8Usik%2BBNKVEA1JMjE%3D.1761685889
+.bbcgoodfood.com	TRUE	/	FALSE	1769461901	_gcl_au	1.1.1191053811.1761685902
+.bbcgoodfood.com	TRUE	/	TRUE	1761757902	FPLC	fQnXYRtaYgGmkwwaCYnhCGHmKssNJMoIp%2F8HPbJTYncKSZmhy6yr0pZBE4QEFK0lA6Q1ZVf1XBFe8U7M6AtCwX7zatQpIMYwqamavgR9dHfPj9jnvNlO9g0di%2B9Krg%3D%3D
+.bbcgoodfood.com	TRUE	/	TRUE	1793221902	_hjSessionUser_1704279	eyJpZCI6ImE2ODcyNzAyLWEzMzQtNThmZC1hOTk2LWZlNTY4ZmI5ZGMxYiIsImNyZWF0ZWQiOjE3NjE2ODU5MDIwNTUsImV4aXN0aW5nIjpmYWxzZX0=
+.bbcgoodfood.com	TRUE	/	TRUE	1761687702	_hjSession_1704279	eyJpZCI6ImQ4NmFlY2ViLTg2NWQtNGUxMC1hN2Y0LWJhNTI4ODgxODFjZCIsImMiOjE3NjE2ODU5MDIwNTgsInMiOjAsInIiOjAsInNiIjowLCJzciI6MCwic2UiOjAsImZzIjoxLCJzcCI6MX0=
+.bbcgoodfood.com	TRUE	/	FALSE	1777237902	optimizelyEndUserId	oeu1761685902395r0.1556310171608073
+.bbcgoodfood.com	TRUE	/	FALSE	1777237902	optimizelySession	1761685902443
+.bbcgoodfood.com	TRUE	/	FALSE	1761772302	_uetsid	b3f83ec0b44211f0bc4c5dd649af6197
+.bbcgoodfood.com	TRUE	/	FALSE	1795381902	_uetvid	b3f87be0b44211f0adf36be2e089cd44
+www.bbcgoodfood.com	FALSE	/	FALSE	1769395303	ccuid	600dca37-5a12-4c59-8472-f681f5c3ec04
+.bbcgoodfood.com	TRUE	/	FALSE	1793221903	ajs_anonymous_id	e7612140-74a5-4803-abbd-74ea4a3e3ef9
+.bbcgoodfood.com	TRUE	/	FALSE	1796245903	_ga_DHGVGHHXFP	GS2.1.s1761685887$o1$g0$t1761685903$j58$l0$h0
+.bbcgoodfood.com	TRUE	/	TRUE	1795381910	__gads	ID=57f92b2184e58f18:T=1761685910:RT=1761685910:S=ALNI_MZEuxXo_NtyDYFl9XLRw34p_JfVIw
+.bbcgoodfood.com	TRUE	/	TRUE	1795381910	__gpi	UID=000012a514206540:T=1761685910:RT=1761685910:S=ALNI_Ma5Z5TcJz7e4qq_WRYPSHh_GFTDMw
+.bbcgoodfood.com	TRUE	/	TRUE	1777237910	__eoi	ID=5b1dfed7ebc3506b:T=1761685910:RT=1761685910:S=AA-AfjYLjguKNhblIElT4vTrvnHd
+.bbcgoodfood.com	TRUE	/	FALSE	1793221904	_clck	5w8rr1%5E2%5Eg0j%5E0%5E2127
+.bbcgoodfood.com	TRUE	/	FALSE	1761772305	_clsk	yrrpz9%5E1761685905136%5E1%5E0%5Ev.clarity.ms%2Fcollect
+www.bbcgoodfood.com	FALSE	/	FALSE	1793221905	idw-fe-id	39866548-cd8a-40fa-83dc-74864ea896a7

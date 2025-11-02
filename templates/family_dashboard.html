@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+:root {
+  --accent: #ff7043;
+  --text-light: #ccc;
+  --text-dark: #f5f5f5;
+  --sidebar-bg: #2c2c2c;
+  --card-bg: #2a2a2a;
+  --modal-bg: #1f1f1f;
+}
+
+/* Reset and Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #1e1e1e;
+  color: var(--text-dark);
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background-color: var(--sidebar-bg);
+  color: var(--text-dark);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  top: 0;
+  left: 0;
+}
+
+.sidebar h2 {
+  font-size: 22px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.sidebar a {
+  color: var(--text-dark);
+  text-decoration: none;
+  margin: 12px 0;
+  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background-color: var(--accent);
+}
+
+.sidebar a.active {
+  font-weight: bold;
+}
+
+/* Main Content */
+.main {
+  margin-left: 220px;
+  padding: 40px 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.header h1 {
+  font-size: 28px;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.header p {
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+
+/* Cards */
+.card {
+  background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  margin-bottom: 30px;
+  transition: transform 0.2s ease;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card h3 {
+  margin-top: 0;
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: var(--text-dark);
+}
+
+.card p,
+.card ul,
+.card li {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-light);
+}
+
+/* Recipe List */
+.recipe-list {
+  list-style: none;
+  padding: 0;
+}
+
+.recipe-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: #333;
+  border-radius: 8px;
+  border-left: 5px solid var(--accent);
+  transition: background-color 0.2s, transform 0.1s;
+  cursor: pointer;
+}
+
+.recipe-item:hover {
+  background-color: #3a3a3a;
+  transform: scale(1.01);
+}
+
+.recipe-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  flex-grow: 1;
+}
+
+.recipe-name {
+  font-weight: bold;
+  font-size: 18px;
+  color: var(--text-dark);
+}
+
+.recipe-date {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.view-arrow {
+  color: var(--accent);
+  font-size: 18px;
+  margin-left: 15px;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding-top: 50px;
+}
+
+.modal-content {
+  background-color: var(--modal-bg);
+  margin: auto;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.close-btn {
+  color: var(--text-light);
+  position: absolute;
+  top: 10px;
+  right: 25px;
+  font-size: 35px;
+  font-weight: bold;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* Markdown Content */
+.recipe-content h1,
+.recipe-content h2 {
+  color: var(--accent);
+  border-bottom: 2px solid #333;
+  padding-bottom: 8px;
+  margin: 20px 0 10px;
+  font-size: 24px;
+}
+
+.recipe-content p,
+.recipe-content ul,
+.recipe-content ol {
+  margin-bottom: 10px;
+}
+
+.recipe-content ul,
+.recipe-content ol {
+  padding-left: 25px;
+}
+
+.recipe-content li {
+  margin-bottom: 5px;
+  color: var(--text-light);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .main {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  .sidebar a {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Family Panel</h2>
+    <a href="#" data-target="overview" class="active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+    <a href="#" data-target="recipes"><i class="fas fa-utensils"></i> Shared Recipes</a>
+    <a href="/" id="home"><i class="fas fa-home"></i> Home</a>
+    <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1>Welcome, Family Member 👋</h1>
+      <p>You're logged in as <strong>Family</strong>.</p>
+    </div>
+
+    <div class="card" id="overview">
+      <h3>📊 Family Overview</h3>
+      <div id="overviewContent">Loading...</div>
+    </div>
+
+    <div class="card" id="recipes">
+      <h3>🍽️ Shared Recipes</h3>
+      <div id="recipeList">Loading...</div>
+    </div>
+  </div>
+
+  <!-- The Modal Structure -->
+  <div id="recipeModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <div id="recipeModalContent" class="recipe-content">
+        <!-- Recipe Markdown will be rendered here -->
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // --- Setup ---
+    const links = document.querySelectorAll('.sidebar a[data-target]');
+    const sections = document.querySelectorAll('.main .card');
+    const recipeModal = document.getElementById('recipeModal');
+    const modalContent = document.getElementById('recipeModalContent');
+    const closeBtn = document.querySelector('.close-btn');
+
+    // Initialize Markdown renderer
+    // Marked library handles parsing markdown to HTML.
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDashboardMetrics();
+      loadRecipeList();
+      // Ensure only the active link gets the class on load
+      document.querySelector('.sidebar a[data-target="overview"]').classList.add('active');
+    });
+
+    // --- Sidebar Navigation Logic ---
+    links.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('data-target');
+        links.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        sections.forEach(section => {
+          section.style.display = section.id === targetId ? 'block' : 'none';
+        });
+      });
+    });
+
+    // Hide all sections initially except overview
+    sections.forEach(section => {
+      section.style.display = section.id === 'overview' ? 'block' : 'none';
+    });
+
+    // --- Dashboard Metrics ---
+    async function loadDashboardMetrics() {
+      try {
+        const res = await fetch('/api/dashboard-metrics');
+        const data = await res.json();
+        document.getElementById('overviewContent').innerHTML = `
+          <ul>
+            <li>Total Recipes: ${data.total_recipes}</li>
+            <li>Active Users: ${data.active_users}</li>
+            <li>Last Sync: ${data.last_sync_time}</li>
+          </ul>
+        `;
+      } catch (err) {
+        document.getElementById('overviewContent').innerText = 'Failed to load metrics.';
+      }
+    }
+
+    // --- Recipe List Loading ---
+    async function loadRecipeList() {
+      try {
+        const res = await fetch('/api/recipes');
+        const recipes = await res.json();
+        const container = document.getElementById('recipeList');
+
+        if (recipes.length === 0) {
+          container.innerHTML = `<p>No shared family recipes yet. Start by adding one!</p>`;
+        } else {
+          const listHtml = recipes.map(r => {
+            const recipeName = r.name || 'Untitled Recipe';
+            const date = r.created ? new Date(r.created).toLocaleDateString() : 'Unknown Date';
+            const time = r.created ? new Date(r.created).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            
+                // *** MODIFIED HTML OUTPUT: Removed button, added onclick to li, added arrow ***
+            return `
+              <li class="recipe-item" onclick="viewRecipe('${r.filename}', '${r.owner_id}')">
+                <div class="recipe-info">
+                  <span class="recipe-name"><i class="fas fa-book-open"></i> ${recipeName}</span>
+                  <span class="recipe-date">Added: ${date} ${time} | Owner: ${r.owner_id}</span>
+                </div>
+                <i class="fas fa-chevron-right view-arrow"></i>
+              </li>
+            `;
+          }).join('');
+          container.innerHTML = `<ul class="recipe-list">${listHtml}</ul>`;
+        }
+      } catch (err) {
+        console.error("Failed to load recipes:", err);
+        document.getElementById('recipeList').innerText = 'Failed to load recipes. Check your connection or API configuration.';
+      }
+    }
+
+    // --- Recipe Viewing Logic (Modal Implementation) ---
+    async function viewRecipe(filename, ownerId) {
+      // Clear previous content and show loading state
+      modalContent.innerHTML = '<h1>Loading Recipe...</h1><p>Please wait.</p>';
+      recipeModal.style.display = 'block';
+      
+      const idToFetch = ownerId || '';
+      
+      try {
+        const response = await fetch(`/api/recipe/${filename}?owner_id=${idToFetch}`);
+        
+        if (!response.ok) {
+          const errorHtml = (response.status === 403) 
+            ? '<h1>Authorization Failed</h1><p>You do not have permission to view this specific recipe.</p>'
+            : (response.status === 404)
+            ? '<h1>Recipe Not Found</h1><p>The requested recipe does not exist.</p>'
+            : `<h1>Error ${response.status}</h1><p>Failed to fetch recipe content.</p>`;
+          
+          modalContent.innerHTML = errorHtml;
+          return;
+        }
+
+        const data = await response.json();
+        
+        if (data && data.content) {
+          // Use Marked.js to convert Markdown content to HTML
+          modalContent.innerHTML = marked.parse(data.content);
+        } else {
+          modalContent.innerHTML = '<h1>Error</h1><p>Recipe content was empty or invalid.</p>';
+        }
+        
+      } catch (error) {
+        console.error('Error fetching recipe:', error);
+        modalContent.innerHTML = '<h1>Network Error</h1><p>Could not connect to the server to fetch the recipe.</p>';
+      }
+    }
+    
+    // --- Modal Close Handlers ---
+    
+    // Close when the user clicks the X button
+    closeBtn.onclick = function() {
+      recipeModal.style.display = 'none';
+      modalContent.innerHTML = ''; // Clear content on close
+    }
+    
+    // Close when the user clicks anywhere outside the modal
+    window.onclick = function(event) {
+      if (event.target == recipeModal) {
+        recipeModal.style.display = 'none';
+        modalContent.innerHTML = ''; // Clear content on close
+      }
+    }
+  </script>
+</body>
+</html>
