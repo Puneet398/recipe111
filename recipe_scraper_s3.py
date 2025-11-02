@@ -252,6 +252,10 @@ class S3Storage:
 class RecipeScraper:
     def __init__(self, storage):
         self.cookie_file_path = 'browser_cookies.txt'
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
         
         # --- Client for Groq (Text) ---
         groq_api_key = os.getenv('GROQ_API_KEY')
