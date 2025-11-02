@@ -5,7 +5,7 @@
     <title>Churro's Recipes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <style>
-        /* ... (All your existing CSS) ... */
+        /* ... (All your existing CSS remains the same) ... */
         * {
             margin: 0;
             padding: 0;
@@ -474,50 +474,6 @@
             background-color: #007bff;
         }
 
-        /* --- NEW/MODIFIED STYLES --- */
-        #imagePreviewContainer {
-            display: none; 
-            margin-bottom: 1rem;
-            padding: 0.5rem;
-            background: #0a0a0a;
-            border: 1px solid #404040;
-            border-radius: 8px;
-            /* Allow wrapping */
-            display: flex;
-            flex-wrap: wrap; 
-            gap: 10px;
-            justify-content: center;
-        }
-        
-        #imagePreviewContainer img {
-            max-width: 45%; /* Show ~2 images per row */
-            height: auto;
-            max-height: 200px;
-            border-radius: 8px;
-            border: 1px solid #404040;
-            object-fit: cover;
-        }
-        
-        @media (min-width: 768px) {
-             #imagePreviewContainer img {
-                max-width: 30%; /* Show ~3 images per row on desktop */
-             }
-        }
-        .image-wrapper {
-            position: relative;
-            display: inline-block;
-            margin: 10px;
-            }
-
-            .remove-image-btn {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s ease, opacity 0.2s ease;
-            }
-
-            .remove-image-btn:hover {
-            transform: scale(1.1);
-            }
-
         /* Image upload specific styles */
         .image-input-group {
             display: flex;
@@ -538,6 +494,70 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: cover;
+        }
+
+        .camera-btn {
+            background: #10b981;
+            color: white;
+            margin-right: 0.5rem;
+        }
+
+        .camera-btn:hover {
+            background: #059669;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hidden-file-input {
+            display: none;
+        }
+
+        /* Preview styles */
+        #imagePreviewContainer {
+            display: none;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #0a0a0a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        #imagePreviewContainer img {
+            max-width: 45%;
+            height: auto;
+            max-height: 200px;
+            border-radius: 8px;
+            border: 1px solid #404040;
+            object-fit: cover;
+        }
+        
+        @media (min-width: 768px) {
+            #imagePreviewContainer img {
+                max-width: 30%;
+            }
+        }
+
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .remove-image-btn {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .remove-image-btn:hover {
+            transform: scale(1.1);
         }
 
     </style>
@@ -594,23 +614,23 @@
         <div class="add-recipe-section">
             <h2 class="section-title">Add Recipe from Image(s)</h2>
 
-            <div id="imageUploadContainer">
-                <!-- Initial image input field -->
-                <div class="image-input-group">
-                    <input type="file" name="images" accept="image/*" class="input image-input" onchange="previewImage(this)">
-                    <button type="button" class="btn btn-small btn-danger remove-image-btn" style="display:none;" onclick="removeImageInput(this)">
-                        ×
-                    </button>
-                    <div class="image-preview">
-                        <img src="" alt="Preview">
-                    </div>
-                </div>
+            <!-- Upload Options -->
+            <div class="upload-options">
+                <button class="btn camera-btn" id="cameraBtn">
+                    📷 Take Photo
+                </button>
+                <button class="btn btn-secondary" id="uploadBtn">
+                    📁 Upload Image
+                </button>
             </div>
-            
-            <button type="button" class="btn btn-secondary" id="addImageInputBtn">
-                + Add More Images
-            </button>
 
+            <!-- Hidden file input for upload -->
+            <input type="file" id="fileInput" class="hidden-file-input" accept="image/*" multiple>
+
+            <!-- Image preview container -->
+            <div id="imagePreviewContainer"></div>
+
+            <!-- Additional options -->
             <div class="input-group" style="margin-top: 1.5rem; display: none;" id="visionTextPromptGroup">
                 <label for="visionTextPrompt" style="display: block; margin-bottom: 0.5rem; color: #fafafa;">Optional: add notes for the AI</label>
                 <textarea class="input" id="visionTextPrompt" rows="3" placeholder="Additional instructions for the AI..."></textarea>
@@ -679,8 +699,9 @@
         let expandedRecipe = null;
         let editingFilename = null;
         let deletingFilename = null;
+        let selectedImages = [];
 
-        // Recipe management functions
+        // Recipe management functions (same as before)
         async function getRecipeList() {
             try {
                 const response = await fetch('/api/recipes');
@@ -761,41 +782,231 @@
             }
         }
 
-        async function shareRecipe(name, url, event) {
-            event.stopPropagation();
+        // Image handling functions
+        function openCamera() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.setAttribute('capture', 'camera');
+            fileInput.setAttribute('accept', 'image/*');
+            fileInput.click();
+        }
+
+        function openFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.removeAttribute('capture');
+            fileInput.setAttribute('accept', 'image/*');
+            fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            // Add new files to selectedImages array
+            Array.from(files).forEach(file => {
+                selectedImages.push(file);
+            });
+
+            updateImagePreviews();
+            document.getElementById('visionTextPromptGroup').style.display = 'block';
+            
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function updateImagePreviews() {
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            
+            if (selectedImages.length === 0) {
+                previewContainer.style.display = 'none';
+                document.getElementById('visionTextPromptGroup').style.display = 'none';
+                return;
+            }
+
+            previewContainer.style.display = 'flex';
+            previewContainer.innerHTML = '';
+
+            selectedImages.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageWrapper = document.createElement('div');
+                    imageWrapper.className = 'image-wrapper';
+                    imageWrapper.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview ${index + 1}">
+                        <button type="button" class="btn btn-small btn-danger remove-image-btn" 
+                                onclick="removeImage(${index})" 
+                                style="position: absolute; top: 5px; right: 5px; padding: 2px 6px;">
+                            ×
+                        </button>
+                    `;
+                    previewContainer.appendChild(imageWrapper);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            updateImagePreviews();
+        }
+
+        async function extractRecipeFromImages() {
+            if (selectedImages.length === 0) {
+                alert('Please select at least one image to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            selectedImages.forEach(file => {
+                formData.append('images', file);
+            });
+
+            const promptText = document.getElementById('visionTextPrompt').value.trim();
+            if (promptText) {
+                formData.append('text', promptText);
+            }
+
+            const extractBtn = document.getElementById('extractRecipeFromImagesBtn');
+            const progressBar = document.getElementById('visionProgressBar');
+            const progressFill = document.getElementById('visionProgressFill');
+
+            extractBtn.disabled = true;
+            extractBtn.textContent = '🔄 Extracting...';
+            progressBar.style.display = 'block';
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 95) progress = 95;
+                progressFill.style.width = progress + '%';
+            }, 800);
 
             try {
-                const filename = url.split('/').pop();
-                const response = await fetch(`/api/recipe/${encodeURIComponent(filename)}`);
-                const data = await response.json();
-                const recipeText = data.content;
+                const response = await fetch('/api/vision', {
+                    method: 'POST',
+                    body: formData
+                });
 
-                const sharePayload = {
-                    title: name,
-                    text: `📖 ${name}\n\n${recipeText}`
-                };
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
 
-                if (navigator.share) {
-                    navigator.share(sharePayload).catch(err => {
-                        console.error('Share failed:', err);
-                        copyToClipboard(sharePayload.text);
-                    });
-                } else {
-                    copyToClipboard(sharePayload.text);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to process image(s)');
                 }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    await loadRecipeList();
+                    extractBtn.textContent = '✅ Recipe Added!';
+                    
+                    // Clear form
+                    selectedImages = [];
+                    updateImagePreviews();
+                    document.getElementById('visionTextPrompt').value = '';
+                    
+                    setTimeout(() => {
+                        extractBtn.textContent = '🤖 Extract Recipe from Image(s)';
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Failed to extract recipe');
+                }
+                
             } catch (error) {
-                console.error('Failed to fetch recipe content:', error);
-                alert('Could not share recipe. Try again later.');
+                clearInterval(progressInterval);
+                extractBtn.textContent = '❌ Failed to Extract';
+                setTimeout(() => {
+                    extractBtn.textContent = '🤖 Extract Recipe from Image(s)';
+                }, 2000);
+                console.error('Vision processing failed:', error);
+                alert('Failed to extract recipe: ' + error.message);
+            } finally {
+                extractBtn.disabled = false;
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 1000);
             }
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Recipe copied to clipboard!');
-            }).catch(err => {
-                console.error('Clipboard copy failed:', err);
-                alert('Failed to copy recipe to clipboard.');
-            });
+        // Rest of your existing functions (scrapeRecipe, renderRecipeList, etc.)
+        async function scrapeRecipe() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            const scrapeBtn = document.getElementById('scrapeBtn');
+            const scrapeText = document.getElementById('scrapeText');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+
+            scrapeBtn.disabled = true;
+            scrapeText.textContent = '🔄 Scraping...';
+            progressBar.style.display = 'block';
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 300);
+
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+
+                const contentType = response.headers.get("content-type");
+                if (response.status === 401 || (response.redirected && !contentType?.includes("application/json")) || (!response.ok && !contentType?.includes("application/json"))) {
+                    alert("Please login first.");
+                    window.location.href = "/auth/login";
+                    scrapeText.textContent = '🔒 Login Required';
+                    return;
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.json(); 
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json(); 
+                
+                await loadRecipeList();
+                scrapeText.textContent = '✅ Recipe Added!';
+
+                document.getElementById('urlInput').value = '';
+                setTimeout(() => {
+                    scrapeText.textContent = '🔍 Scrape Recipe';
+                }, 2000);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                if (error instanceof SyntaxError && error.message.includes("Unexpected token '<'")) {
+                   alert("Please login first.");
+                   window.location.href = "/auth/login"; 
+                   scrapeText.textContent = '🔒 Login Required';
+                } else {
+                   scrapeText.textContent = '❌ Failed to Scrape';
+                   setTimeout(() => {
+                       scrapeText.textContent = '🔍 Scrape Recipe';
+                   }, 2000);
+                   console.error('Scraping failed:', error);
+                   alert('Failed to scrape recipe: ' + error.message);
+                }
+            } finally {
+                scrapeBtn.disabled = false;
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 1000);
+            }
         }
 
         function renderRecipeList() {
@@ -976,239 +1187,19 @@
             deletingFilename = null;
         }
 
-        async function scrapeRecipe() {
-            const url = document.getElementById('urlInput').value.trim();
-            if (!url) {
-                alert('Please enter a URL');
-                return;
-            }
-
-            const scrapeBtn = document.getElementById('scrapeBtn');
-            const scrapeText = document.getElementById('scrapeText');
-            const progressBar = document.getElementById('progressBar');
-            const progressFill = document.getElementById('progressFill');
-
-            scrapeBtn.disabled = true;
-            scrapeText.textContent = '🔄 Scraping...';
-            progressBar.style.display = 'block';
-            
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress > 90) progress = 90;
-                progressFill.style.width = progress + '%';
-            }, 300);
-
-            try {
-                const response = await fetch('/api/scrape', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
-                });
-
-                clearInterval(progressInterval);
-                progressFill.style.width = '100%';
-
-                const contentType = response.headers.get("content-type");
-                if (response.status === 401 || (response.redirected && !contentType?.includes("application/json")) || (!response.ok && !contentType?.includes("application/json"))) {
-                    alert("Please login first.");
-                    window.location.href = "/auth/login";
-                    scrapeText.textContent = '🔒 Login Required';
-                    return;
-                }
-
-                if (!response.ok) {
-                    const errorData = await response.json(); 
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json(); 
-                
-                await loadRecipeList();
-                scrapeText.textContent = '✅ Recipe Added!';
-
-                document.getElementById('urlInput').value = '';
-                setTimeout(() => {
-                    scrapeText.textContent = '🔍 Scrape Recipe';
-                }, 2000);
-                
-            } catch (error) {
-                clearInterval(progressInterval);
-                if (error instanceof SyntaxError && error.message.includes("Unexpected token '<'")) {
-                   alert("Please login first.");
-                   window.location.href = "/auth/login"; 
-                   scrapeText.textContent = '🔒 Login Required';
-                } else {
-                   scrapeText.textContent = '❌ Failed to Scrape';
-                   setTimeout(() => {
-                       scrapeText.textContent = '🔍 Scrape Recipe';
-                   }, 2000);
-                   console.error('Scraping failed:', error);
-                   alert('Failed to scrape recipe: ' + error.message);
-                }
-            } finally {
-                scrapeBtn.disabled = false;
-                setTimeout(() => {
-                    progressBar.style.display = 'none';
-                    progressFill.style.width = '0%';
-                }, 1000);
-            }
-        }
-
-        // Image upload functionality
-        function createImageInputGroup() {
-            const div = document.createElement('div');
-            div.className = 'image-input-group';
-            div.innerHTML = `
-                <input type="file" name="images" accept="image/*" class="input image-input" onchange="previewImage(this)">
-                <button type="button" class="btn btn-small btn-danger remove-image-btn" onclick="removeImageInput(this)">
-                    ×
-                </button>
-                <div class="image-preview">
-                    <img src="" alt="Preview">
-                </div>
-            `;
-            return div;
-        }
-
-        function updateRemoveButtonsVisibility() {
-            const allRemoveBtns = document.querySelectorAll('.remove-image-btn');
-            if (allRemoveBtns.length <= 1) {
-                allRemoveBtns.forEach(btn => btn.style.display = 'none');
-            } else {
-                allRemoveBtns.forEach(btn => btn.style.display = 'block');
-            }
-        }
-
-        function previewImage(input) {
-            const previewContainer = input.closest('.image-input-group').querySelector('.image-preview');
-            const imgElement = previewContainer.querySelector('img');
-
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imgElement.src = e.target.result;
-                    previewContainer.style.display = 'block';
-                };
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                imgElement.src = "";
-                previewContainer.style.display = 'none';
-            }
-            
-            // Show the text prompt when at least one image is selected
-            const hasImages = document.querySelectorAll('.image-input[files]').length > 0;
-            document.getElementById('visionTextPromptGroup').style.display = hasImages ? 'block' : 'none';
-        }
-
-        function removeImageInput(button) {
-            const group = button.closest('.image-input-group');
-            if (group) {
-                group.remove();
-                updateRemoveButtonsVisibility();
-            }
-        }
-
-        async function extractRecipeFromImages() {
-            const formData = new FormData();
-            let hasFiles = false;
-
-            document.querySelectorAll('.image-input').forEach(input => {
-                if (input.files && input.files[0]) {
-                    formData.append('images', input.files[0]);
-                    hasFiles = true;
-                }
-            });
-
-            if (!hasFiles) {
-                alert('Please select at least one image to upload.');
-                return;
-            }
-
-            const promptText = document.getElementById('visionTextPrompt').value.trim();
-            if (promptText) {
-                formData.append('text', promptText);
-            }
-
-            const extractBtn = document.getElementById('extractRecipeFromImagesBtn');
-            const progressBar = document.getElementById('visionProgressBar');
-            const progressFill = document.getElementById('visionProgressFill');
-
-            extractBtn.disabled = true;
-            extractBtn.textContent = '🔄 Extracting...';
-            progressBar.style.display = 'block';
-            
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress > 95) progress = 95;
-                progressFill.style.width = progress + '%';
-            }, 800);
-
-            try {
-                const response = await fetch('/api/vision', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                clearInterval(progressInterval);
-                progressFill.style.width = '100%';
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to process image(s)');
-                }
-
-                const result = await response.json();
-                
-                if (result.success) {
-                    await loadRecipeList();
-                    extractBtn.textContent = '✅ Recipe Added!';
-                    
-                    // Clear form
-                    document.getElementById('imageUploadContainer').innerHTML = '';
-                    document.getElementById('imageUploadContainer').appendChild(createImageInputGroup());
-                    document.getElementById('visionTextPrompt').value = '';
-                    document.getElementById('visionTextPromptGroup').style.display = 'none';
-                    updateRemoveButtonsVisibility();
-                    
-                    setTimeout(() => {
-                        extractBtn.textContent = '🤖 Extract Recipe from Image(s)';
-                    }, 2000);
-                } else {
-                    throw new Error(result.error || 'Failed to extract recipe');
-                }
-                
-            } catch (error) {
-                clearInterval(progressInterval);
-                extractBtn.textContent = '❌ Failed to Extract';
-                setTimeout(() => {
-                    extractBtn.textContent = '🤖 Extract Recipe from Image(s)';
-                }, 2000);
-                console.error('Vision processing failed:', error);
-                alert('Failed to extract recipe: ' + error.message);
-            } finally {
-                extractBtn.disabled = false;
-                setTimeout(() => {
-                    progressBar.style.display = 'none';
-                    progressFill.style.width = '0%';
-                }, 1000);
-            }
-        }
-
         function refreshRecipeList() {
             loadRecipeList();
         }
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Add image input button
-            document.getElementById('addImageInputBtn').addEventListener('click', function() {
-                const newImageInputGroup = createImageInputGroup();
-                document.getElementById('imageUploadContainer').appendChild(newImageInputGroup);
-                updateRemoveButtonsVisibility();
-            });
-
+            // Camera and upload buttons
+            document.getElementById('cameraBtn').addEventListener('click', openCamera);
+            document.getElementById('uploadBtn').addEventListener('click', openFileUpload);
+            
+            // File input change handler
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+            
             // Extract recipe from images button
             document.getElementById('extractRecipeFromImagesBtn').addEventListener('click', extractRecipeFromImages);
 
@@ -1246,9 +1237,7 @@
 
             // Initialize
             loadRecipeList();
-            updateRemoveButtonsVisibility();
         });
     </script>
 </body>
 </html>
-
