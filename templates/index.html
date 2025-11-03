@@ -693,551 +693,585 @@
             </div>
         </div>
     </div>
+<script>
+    let recipes = [];
+    let expandedRecipe = null;
+    let editingFilename = null;
+    let deletingFilename = null;
+    let selectedImages = [];
 
-    <script>
-        let recipes = [];
-        let expandedRecipe = null;
-        let editingFilename = null;
-        let deletingFilename = null;
-        let selectedImages = [];
+    // --- NEW / FIXED FUNCTION ---
+    // Function to handle sharing, prioritizing the Web Share API
+    async function shareRecipe(name, url, event) {
+        event.stopPropagation(); // Prevent toggleRecipe from firing
 
-        // Recipe management functions (same as before)
-        async function getRecipeList() {
-            try {
-                const response = await fetch('/api/recipes');
-                return await response.json();
-            } catch (error) {
-                console.error('Failed to fetch recipes:', error);
-                return [];
-            }
-        }
+        try {
+            const filename = url.split('/').pop(); // Extract filename from URL
+            const response = await fetch(`/api/recipe/${encodeURIComponent(filename)}`);
+            const data = await response.json();
+            const recipeText = data.content;
 
-        async function getRecipeContent(filename) {
-            try {
-                const response = await fetch(`/api/recipe/${encodeURIComponent(filename)}`);
-                const data = await response.json();
-                return data.content;
-            } catch (error) {
-                console.error('Failed to fetch recipe content:', error);
-                return null;
-            }
-        }
+            const sharePayload = {
+                title: name,
+                text: `📖 ${name}\n\n${recipeText}`
+            };
 
-        async function scrapeRecipeFromUrl(url) {
-            const response = await fetch('/api/scrape', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ url: url })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to scrape recipe');
-            }
-            
-            return await response.json();
-        }
-
-        async function saveRecipeContent(filename, content) {
-            const response = await fetch('/api/recipe/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                    filename: filename, 
-                    content: content 
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to save recipe');
-            }
-            
-            return await response.json();
-        }
-
-        async function deleteRecipeFile(filename) {
-            const response = await fetch(`/api/recipe/${encodeURIComponent(filename)}`, {
-                method: 'DELETE'
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to delete recipe');
-            }
-            
-            return await response.json();
-        }
-
-        async function loadRecipeList() {
-            try {
-                recipes = await getRecipeList();
-                renderRecipeList();
-            } catch (error) {
-                console.error('Failed to load recipes:', error);
-            }
-        }
-
-        // Image handling functions
-        function openCamera() {
-            const fileInput = document.getElementById('fileInput');
-            fileInput.setAttribute('capture', 'camera');
-            fileInput.setAttribute('accept', 'image/*');
-            fileInput.click();
-        }
-
-        function openFileUpload() {
-            const fileInput = document.getElementById('fileInput');
-            fileInput.removeAttribute('capture');
-            fileInput.setAttribute('accept', 'image/*');
-            fileInput.click();
-        }
-
-        function handleFileSelect(event) {
-            const files = event.target.files;
-            if (files.length === 0) return;
-
-            // Add new files to selectedImages array
-            Array.from(files).forEach(file => {
-                selectedImages.push(file);
-            });
-
-            updateImagePreviews();
-            document.getElementById('visionTextPromptGroup').style.display = 'block';
-            
-            // Reset file input
-            event.target.value = '';
-        }
-
-        function updateImagePreviews() {
-            const previewContainer = document.getElementById('imagePreviewContainer');
-            
-            if (selectedImages.length === 0) {
-                previewContainer.style.display = 'none';
-                document.getElementById('visionTextPromptGroup').style.display = 'none';
-                return;
-            }
-
-            previewContainer.style.display = 'flex';
-            previewContainer.innerHTML = '';
-
-            selectedImages.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imageWrapper = document.createElement('div');
-                    imageWrapper.className = 'image-wrapper';
-                    imageWrapper.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview ${index + 1}">
-                        <button type="button" class="btn btn-small btn-danger remove-image-btn" 
-                                onclick="removeImage(${index})" 
-                                style="position: absolute; top: 5px; right: 5px; padding: 2px 6px;">
-                            ×
-                        </button>
-                    `;
-                    previewContainer.appendChild(imageWrapper);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function removeImage(index) {
-            selectedImages.splice(index, 1);
-            updateImagePreviews();
-        }
-
-        async function extractRecipeFromImages() {
-            if (selectedImages.length === 0) {
-                alert('Please select at least one image to upload.');
-                return;
-            }
-
-            const formData = new FormData();
-            selectedImages.forEach(file => {
-                formData.append('images', file);
-            });
-
-            const promptText = document.getElementById('visionTextPrompt').value.trim();
-            if (promptText) {
-                formData.append('text', promptText);
-            }
-
-            const extractBtn = document.getElementById('extractRecipeFromImagesBtn');
-            const progressBar = document.getElementById('visionProgressBar');
-            const progressFill = document.getElementById('visionProgressFill');
-
-            extractBtn.disabled = true;
-            extractBtn.textContent = '🔄 Extracting...';
-            progressBar.style.display = 'block';
-            
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress > 95) progress = 95;
-                progressFill.style.width = progress + '%';
-            }, 800);
-
-            try {
-                const response = await fetch('/api/vision', {
-                    method: 'POST',
-                    body: formData
+            if (navigator.share) {
+                navigator.share(sharePayload).catch(err => {
+                    console.error('Share failed:', err);
+                    copyToClipboard(sharePayload.text);
                 });
+            } else {
+                copyToClipboard(sharePayload.text);
+            }
+        } catch (error) {
+            console.error('Failed to fetch recipe content:', error);
+            alert('Could not share recipe. Try again later.');
+        }
+    }
+    // --- END NEW / FIXED FUNCTION ---   // Recipe management functions (kept the same)
+    
+    
+    async function getRecipeList() {
+        try {
+            const response = await fetch('/api/recipes');
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch recipes:', error);
+            return [];
+        }
+    }
 
-                clearInterval(progressInterval);
-                progressFill.style.width = '100%';
+    async function getRecipeContent(filename) {
+        // You need to find the correct owner_id before calling this, especially for family roles
+        const recipe = recipes.find(r => r.filename === filename);
+        const owner_id_param = recipe && recipe.owner_id ? `?owner_id=${recipe.owner_id}` : '';
+        
+        try {
+            const response = await fetch(`/api/recipe/${encodeURIComponent(filename)}${owner_id_param}`);
+            const data = await response.json();
+            return data.content;
+        } catch (error) {
+            console.error('Failed to fetch recipe content:', error);
+            return null;
+        }
+    }
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to process image(s)');
-                }
+    async function scrapeRecipeFromUrl(url) {
+        const response = await fetch('/api/scrape', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: url })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to scrape recipe');
+        }
+        
+        return await response.json();
+    }
 
-                const result = await response.json();
+    async function saveRecipeContent(filename, content) {
+        const response = await fetch('/api/recipe/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                filename: filename, 
+                content: content 
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to save recipe');
+        }
+        
+        return await response.json();
+    }
+
+    async function deleteRecipeFile(filename) {
+        const response = await fetch(`/api/recipe/${encodeURIComponent(filename)}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to delete recipe');
+        }
+        
+        return await response.json();
+    }
+
+    async function loadRecipeList() {
+        try {
+            recipes = await getRecipeList();
+            renderRecipeList();
+        } catch (error) {
+            console.error('Failed to load recipes:', error);
+        }
+    }
+
+    // Image handling functions
+    function openCamera() {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.setAttribute('capture', 'camera');
+        fileInput.setAttribute('accept', 'image/*');
+        fileInput.click();
+    }
+
+    function openFileUpload() {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.removeAttribute('capture');
+        fileInput.setAttribute('accept', 'image/*');
+        fileInput.click();
+    }
+
+    function handleFileSelect(event) {
+        const files = event.target.files;
+        if (files.length === 0) return;
+
+        // Add new files to selectedImages array
+        Array.from(files).forEach(file => {
+            selectedImages.push(file);
+        });
+
+        updateImagePreviews();
+        document.getElementById('visionTextPromptGroup').style.display = 'block';
+        
+        // Reset file input
+        event.target.value = '';
+    }
+
+    function updateImagePreviews() {
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        
+        if (selectedImages.length === 0) {
+            previewContainer.style.display = 'none';
+            document.getElementById('visionTextPromptGroup').style.display = 'none';
+            return;
+        }
+
+        previewContainer.style.display = 'flex';
+        previewContainer.innerHTML = '';
+
+        selectedImages.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageWrapper = document.createElement('div');
+                imageWrapper.className = 'image-wrapper';
+                imageWrapper.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview ${index + 1}">
+                    <button type="button" class="btn btn-small btn-danger remove-image-btn" 
+                            onclick="removeImage(${index})" 
+                            style="position: absolute; top: 5px; right: 5px; padding: 2px 6px;">
+                        ×
+                    </button>
+                `;
+                previewContainer.appendChild(imageWrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function removeImage(index) {
+        selectedImages.splice(index, 1);
+        updateImagePreviews();
+    }
+
+    async function extractRecipeFromImages() {
+        if (selectedImages.length === 0) {
+            alert('Please select at least one image to upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        selectedImages.forEach(file => {
+            formData.append('images', file);
+        });
+
+        const promptText = document.getElementById('visionTextPrompt').value.trim();
+        if (promptText) {
+            formData.append('text', promptText);
+        }
+
+        const extractBtn = document.getElementById('extractRecipeFromImagesBtn');
+        const progressBar = document.getElementById('visionProgressBar');
+        const progressFill = document.getElementById('visionProgressFill');
+
+        extractBtn.disabled = true;
+        extractBtn.textContent = '🔄 Extracting...';
+        progressBar.style.display = 'block';
+        
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress > 95) progress = 95;
+            progressFill.style.width = progress + '%';
+        }, 800);
+
+        try {
+            const response = await fetch('/api/vision', {
+                method: 'POST',
+                body: formData
+            });
+
+            clearInterval(progressInterval);
+            progressFill.style.width = '100%';
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to process image(s)');
+            }
+
+            const result = await response.json();
+            
+            if (result.success) {
+                await loadRecipeList();
+                extractBtn.textContent = '✅ Recipe Added!';
                 
-                if (result.success) {
-                    await loadRecipeList();
-                    extractBtn.textContent = '✅ Recipe Added!';
-                    
-                    // Clear form
-                    selectedImages = [];
-                    updateImagePreviews();
-                    document.getElementById('visionTextPrompt').value = '';
-                    
-                    setTimeout(() => {
-                        extractBtn.textContent = '🤖 Extract Recipe from Image(s)';
-                    }, 2000);
-                } else {
-                    throw new Error(result.error || 'Failed to extract recipe');
-                }
+                // Clear form
+                selectedImages = [];
+                updateImagePreviews();
+                document.getElementById('visionTextPrompt').value = '';
                 
-            } catch (error) {
-                clearInterval(progressInterval);
-                extractBtn.textContent = '❌ Failed to Extract';
                 setTimeout(() => {
                     extractBtn.textContent = '🤖 Extract Recipe from Image(s)';
                 }, 2000);
-                console.error('Vision processing failed:', error);
-                alert('Failed to extract recipe: ' + error.message);
-            } finally {
-                extractBtn.disabled = false;
-                setTimeout(() => {
-                    progressBar.style.display = 'none';
-                    progressFill.style.width = '0%';
-                }, 1000);
+            } else {
+                throw new Error(result.error || 'Failed to extract recipe');
             }
+            
+        } catch (error) {
+            clearInterval(progressInterval);
+            extractBtn.textContent = '❌ Failed to Extract';
+            setTimeout(() => {
+                extractBtn.textContent = '🤖 Extract Recipe from Image(s)';
+            }, 2000);
+            console.error('Vision processing failed:', error);
+            alert('Failed to extract recipe: ' + error.message);
+        } finally {
+            extractBtn.disabled = false;
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+            }, 1000);
+        }
+    }
+
+    // Rest of your existing functions (scrapeRecipe, renderRecipeList, etc.)
+    async function scrapeRecipe() {
+        const url = document.getElementById('urlInput').value.trim();
+        if (!url) {
+            alert('Please enter a URL');
+            return;
         }
 
-        // Rest of your existing functions (scrapeRecipe, renderRecipeList, etc.)
-        async function scrapeRecipe() {
-            const url = document.getElementById('urlInput').value.trim();
-            if (!url) {
-                alert('Please enter a URL');
+        const scrapeBtn = document.getElementById('scrapeBtn');
+        const scrapeText = document.getElementById('scrapeText');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+
+        scrapeBtn.disabled = true;
+        scrapeText.textContent = '🔄 Scraping...';
+        progressBar.style.display = 'block';
+        
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressFill.style.width = progress + '%';
+        }, 300);
+
+        try {
+            const response = await fetch('/api/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url })
+            });
+
+            clearInterval(progressInterval);
+            progressFill.style.width = '100%';
+
+            const contentType = response.headers.get("content-type");
+            if (response.status === 401 || (response.redirected && !contentType?.includes("application/json")) || (!response.ok && !contentType?.includes("application/json"))) {
+                alert("Please login first.");
+                window.location.href = "/auth/login";
+                scrapeText.textContent = '🔒 Login Required';
                 return;
             }
 
-            const scrapeBtn = document.getElementById('scrapeBtn');
-            const scrapeText = document.getElementById('scrapeText');
-            const progressBar = document.getElementById('progressBar');
-            const progressFill = document.getElementById('progressFill');
+            if (!response.ok) {
+                const errorData = await response.json(); 
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
 
-            scrapeBtn.disabled = true;
-            scrapeText.textContent = '🔄 Scraping...';
-            progressBar.style.display = 'block';
+            const result = await response.json(); 
             
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress > 90) progress = 90;
-                progressFill.style.width = progress + '%';
-            }, 300);
+            await loadRecipeList();
+            scrapeText.textContent = '✅ Recipe Added!';
 
-            try {
-                const response = await fetch('/api/scrape', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
-                });
-
-                clearInterval(progressInterval);
-                progressFill.style.width = '100%';
-
-                const contentType = response.headers.get("content-type");
-                if (response.status === 401 || (response.redirected && !contentType?.includes("application/json")) || (!response.ok && !contentType?.includes("application/json"))) {
-                    alert("Please login first.");
-                    window.location.href = "/auth/login";
-                    scrapeText.textContent = '🔒 Login Required';
-                    return;
-                }
-
-                if (!response.ok) {
-                    const errorData = await response.json(); 
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json(); 
-                
-                await loadRecipeList();
-                scrapeText.textContent = '✅ Recipe Added!';
-
-                document.getElementById('urlInput').value = '';
+            document.getElementById('urlInput').value = '';
+            setTimeout(() => {
+                scrapeText.textContent = '🔍 Scrape Recipe';
+            }, 2000);
+            
+        } catch (error) {
+            clearInterval(progressInterval);
+            if (error instanceof SyntaxError && error.message.includes("Unexpected token '<'")) {
+                alert("Please login first.");
+                window.location.href = "/auth/login"; 
+                scrapeText.textContent = '🔒 Login Required';
+            } else {
+                scrapeText.textContent = '❌ Failed to Scrape';
                 setTimeout(() => {
                     scrapeText.textContent = '🔍 Scrape Recipe';
                 }, 2000);
-                
-            } catch (error) {
-                clearInterval(progressInterval);
-                if (error instanceof SyntaxError && error.message.includes("Unexpected token '<'")) {
-                   alert("Please login first.");
-                   window.location.href = "/auth/login"; 
-                   scrapeText.textContent = '🔒 Login Required';
-                } else {
-                   scrapeText.textContent = '❌ Failed to Scrape';
-                   setTimeout(() => {
-                       scrapeText.textContent = '🔍 Scrape Recipe';
-                   }, 2000);
-                   console.error('Scraping failed:', error);
-                   alert('Failed to scrape recipe: ' + error.message);
-                }
-            } finally {
-                scrapeBtn.disabled = false;
-                setTimeout(() => {
-                    progressBar.style.display = 'none';
-                    progressFill.style.width = '0%';
-                }, 1000);
+                console.error('Scraping failed:', error);
+                alert('Failed to scrape recipe: ' + error.message);
             }
+        } finally {
+            scrapeBtn.disabled = false;
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+            }, 1000);
         }
+    }
 
-        function renderRecipeList() {
-            const listElement = document.getElementById('recipeList');
+    function renderRecipeList() {
+        const listElement = document.getElementById('recipeList');
 
-            if (recipes.length === 0) {
-                listElement.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No recipes found</h3>
-                        <p>Add your first recipe by entering a URL above</p>
-                    </div>
-                `;
-                return;
-            }
-
-            listElement.innerHTML = recipes.map(recipe => `
-                <div class="recipe-item ${expandedRecipe?.filename === recipe.filename ? 'expanded' : ''}" 
-                    onclick="toggleRecipe('${recipe.filename}')">
-                    <div class="recipe-header">
-                        <div class="recipe-info">
-                            <div class="recipe-name">${recipe.name}</div>
-                            <div class="recipe-meta">
-                                ${new Date(recipe.created).toLocaleDateString()} • ${recipe.filename}
-                            </div>
-                        </div>
-                        <div class="recipe-actions">
-                            <button class="btn btn-small btn-secondary" onclick="editRecipe('${recipe.filename}', event)" title="Edit Recipe">
-                                ✏️
-                            </button>
-                            <button class="btn btn-small btn-danger" onclick="deleteRecipe('${recipe.filename}', event)" title="Delete Recipe">
-                                🗑️
-                            </button>
-                            <button class="btn btn-small" 
-                                    onclick="shareRecipe('${recipe.name}', '${window.location.origin}/recipe/${recipe.filename}', event)" 
-                                    title="Share Recipe">
-                                🔗
-                            </button>
-                            <div class="expand-icon">
-                                ${expandedRecipe?.filename === recipe.filename ? '▼' : '▶'}
-                            </div>
-                        </div>
-                    </div>
-                    ${expandedRecipe?.filename === recipe.filename ? `
-                        <div class="recipe-content" id="content-${recipe.filename}">
-                            <div style="text-align: center; padding: 2rem; color: #737373;">
-                                Loading recipe...
-                            </div>
-                        </div>
-                    ` : ''}
+        if (recipes.length === 0) {
+            listElement.innerHTML = `
+                <div class="empty-state">
+                    <h3>No recipes found</h3>
+                    <p>Add your first recipe by entering a URL above</p>
                 </div>
-            `).join('');
-
-            if (expandedRecipe) {
-                loadRecipeContent(expandedRecipe.filename);
-            }
+            `;
+            return;
         }
+        
+        listElement.innerHTML = recipes.map(recipe => `
+            <div class="recipe-item ${expandedRecipe?.filename === recipe.filename ? 'expanded' : ''}" 
+                onclick="toggleRecipe('${recipe.filename}')">
+                <div class="recipe-header">
+                    <div class="recipe-info">
+                        <div class="recipe-name">${recipe.name}</div>
+                        <div class="recipe-meta">
+                            ${new Date(recipe.created).toLocaleDateString()} • ${recipe.filename}
+                        </div>
+                    </div>
+                    <div class="recipe-actions">
+                        <button class="btn btn-small btn-secondary" onclick="editRecipe('${recipe.filename}', event)" title="Edit Recipe">
+                            ✏️
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="deleteRecipe('${recipe.filename}', event)" title="Delete Recipe">
+                            🗑️
+                        </button>
+                        <button class="btn btn-small" 
+                                onclick="shareRecipe('${recipe.name}', '${window.location.origin}/recipe/${recipe.filename}', event)" 
+                                title="Share Recipe">
+                            🔗
+                        </button>
+                        <div class="expand-icon">
+                            ${expandedRecipe?.filename === recipe.filename ? '▼' : '▶'}
+                        </div>
+                    </div>
+                </div>
+                ${expandedRecipe?.filename === recipe.filename ? `
+                    <div class="recipe-content" id="content-${recipe.filename}">
+                        <div style="text-align: center; padding: 2rem; color: #737373;">
+                            Loading recipe...
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
 
-        async function toggleRecipe(filename) {
-            if (expandedRecipe?.filename === filename) {
-                expandedRecipe = null;
-            } else {
-                expandedRecipe = recipes.find(r => r.filename === filename);
-            }
-            
-            renderRecipeList();
+        if (expandedRecipe) {
+            loadRecipeContent(expandedRecipe.filename);
         }
+    }
 
-        async function loadRecipeContent(filename) {
-            try {
-                const content = await getRecipeContent(filename);
-                if (content) {
-                    marked.setOptions({
-                        breaks: true,
-                        gfm: true
-                    });
-                    
-                    const html = marked.parse(content);
-                    const contentElement = document.getElementById(`content-${filename}`);
-                    if (contentElement) {
-                        contentElement.innerHTML = html;
-                    }
-                } else {
-                    throw new Error('No content received');
-                }
-            } catch (error) {
+    async function toggleRecipe(filename) {
+        if (expandedRecipe?.filename === filename) {
+            expandedRecipe = null;
+        } else {
+            expandedRecipe = recipes.find(r => r.filename === filename);
+        }
+        
+        renderRecipeList();
+    }
+
+    async function loadRecipeContent(filename) {
+        try {
+            const content = await getRecipeContent(filename);
+            if (content) {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true
+                });
+                
+                const html = marked.parse(content);
                 const contentElement = document.getElementById(`content-${filename}`);
                 if (contentElement) {
-                    contentElement.innerHTML = `
-                        <div style="text-align: center; padding: 2rem; color: #ef4444;">
-                            <h3>Error loading recipe</h3>
-                            <p>Failed to load the recipe content</p>
-                        </div>
-                    `;
+                    contentElement.innerHTML = html;
                 }
+            } else {
+                throw new Error('No content received');
+            }
+        } catch (error) {
+            const contentElement = document.getElementById(`content-${filename}`);
+            if (contentElement) {
+                contentElement.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #ef4444;">
+                        <h3>Error loading recipe</h3>
+                        <p>Failed to load the recipe content</p>
+                    </div>
+                `;
             }
         }
+    }
 
-        async function editRecipe(filename, event) {
-            event.stopPropagation();
-            
-            try {
-                const content = await getRecipeContent(filename);
-                if (content) {
-                    editingFilename = filename;
-                    document.getElementById('editContent').value = content;
-                    document.getElementById('editModal').classList.add('show');
-                } else {
-                    alert('Failed to load recipe content for editing');
-                }
-            } catch (error) {
-                console.error('Failed to load recipe for editing:', error);
-                alert('Failed to load recipe for editing');
+    async function editRecipe(filename, event) {
+        event.stopPropagation();
+        
+        try {
+            const content = await getRecipeContent(filename);
+            if (content) {
+                editingFilename = filename;
+                document.getElementById('editContent').value = content;
+                document.getElementById('editModal').classList.add('show');
+            } else {
+                alert('Failed to load recipe content for editing');
             }
+        } catch (error) {
+            console.error('Failed to load recipe for editing:', error);
+            alert('Failed to load recipe for editing');
         }
+    }
 
-        async function saveRecipe() {
-            if (!editingFilename) return;
+    async function saveRecipe() {
+        if (!editingFilename) return;
+        
+        const content = document.getElementById('editContent').value;
+        if (!content.trim()) {
+            alert('Recipe content cannot be empty');
+            return;
+        }
+        
+        try {
+            await saveRecipeContent(editingFilename, content);
+            closeEditModal();
+            await loadRecipeList();
             
-            const content = document.getElementById('editContent').value;
-            if (!content.trim()) {
-                alert('Recipe content cannot be empty');
-                return;
+            if (expandedRecipe?.filename === editingFilename) {
+                renderRecipeList();
             }
             
-            try {
-                await saveRecipeContent(editingFilename, content);
-                closeEditModal();
-                await loadRecipeList();
-                
-                if (expandedRecipe?.filename === editingFilename) {
-                    renderRecipeList();
-                }
-                
-                const saveBtn = document.getElementById('saveRecipeBtn');
-                const originalText = saveBtn.textContent;
-                saveBtn.textContent = '✅ Saved!';
-                setTimeout(() => {
-                    saveBtn.textContent = originalText;
-                }, 2000);
-                
-            } catch (error) {
-                console.error('Failed to save recipe:', error);
-                alert('Failed to save recipe: ' + error.message);
+            const saveBtn = document.getElementById('saveRecipeBtn');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = '✅ Saved!';
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Failed to save recipe:', error);
+            alert('Failed to save recipe: ' + error.message);
+        }
+    }
+
+    function deleteRecipe(filename, event) {
+        event.stopPropagation();
+        deletingFilename = filename;
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    async function confirmDelete() {
+        if (!deletingFilename) return;
+        
+        try {
+            await deleteRecipeFile(deletingFilename);
+            closeDeleteModal();
+            
+            if (expandedRecipe?.filename === deletingFilename) {
+                expandedRecipe = null;
             }
-        }
-
-        function deleteRecipe(filename, event) {
-            event.stopPropagation();
-            deletingFilename = filename;
-            document.getElementById('deleteModal').classList.add('show');
-        }
-
-        async function confirmDelete() {
-            if (!deletingFilename) return;
             
-            try {
-                await deleteRecipeFile(deletingFilename);
-                closeDeleteModal();
-                
-                if (expandedRecipe?.filename === deletingFilename) {
-                    expandedRecipe = null;
-                }
-                
-                await loadRecipeList();
-            } catch (error) {
-                console.error('Failed to delete recipe:', error);
-                alert('Failed to delete recipe: ' + error.message);
+            await loadRecipeList();
+        } catch (error) {
+            console.error('Failed to delete recipe:', error);
+            alert('Failed to delete recipe: ' + error.message);
+        }
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('show');
+        editingFilename = null;
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+        deletingFilename = null;
+    }
+
+    function refreshRecipeList() {
+        loadRecipeList();
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Camera and upload buttons
+        document.getElementById('cameraBtn').addEventListener('click', openCamera);
+        document.getElementById('uploadBtn').addEventListener('click', openFileUpload);
+        
+        // File input change handler
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        
+        // Extract recipe from images button
+        document.getElementById('extractRecipeFromImagesBtn').addEventListener('click', extractRecipeFromImages);
+
+        // URL input enter key
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                scrapeRecipe();
             }
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('show');
-            editingFilename = null;
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('show');
-            deletingFilename = null;
-        }
-
-        function refreshRecipeList() {
-            loadRecipeList();
-        }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            // Camera and upload buttons
-            document.getElementById('cameraBtn').addEventListener('click', openCamera);
-            document.getElementById('uploadBtn').addEventListener('click', openFileUpload);
-            
-            // File input change handler
-            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-            
-            // Extract recipe from images button
-            document.getElementById('extractRecipeFromImagesBtn').addEventListener('click', extractRecipeFromImages);
-
-            // URL input enter key
-            document.getElementById('urlInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    scrapeRecipe();
-                }
-            });
-
-            // Modal and keyboard shortcuts
-            window.addEventListener('click', function(event) {
-                const editModal = document.getElementById('editModal');
-                const deleteModal = document.getElementById('deleteModal');
-                
-                if (event.target === editModal) {
-                    closeEditModal();
-                }
-                if (event.target === deleteModal) {
-                    closeDeleteModal();
-                }
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeEditModal();
-                    closeDeleteModal();
-                }
-                
-                if (e.ctrlKey && e.key === 's' && editingFilename) {
-                    e.preventDefault();
-                    saveRecipe();
-                }
-            });
-
-            // Initialize
-            loadRecipeList();
         });
-    </script>
+
+        // Modal and keyboard shortcuts
+        window.addEventListener('click', function(event) {
+            const editModal = document.getElementById('editModal');
+            const deleteModal = document.getElementById('deleteModal');
+            
+            if (event.target === editModal) {
+                closeEditModal();
+            }
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+                closeDeleteModal();
+            }
+            
+            if (e.ctrlKey && e.key === 's' && editingFilename) {
+                e.preventDefault();
+                saveRecipe();
+            }
+        });
+
+        // Initialize
+        loadRecipeList();
+    });
+</script>
 </body>
 </html>
