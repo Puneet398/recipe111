@@ -11,7 +11,7 @@ import json
 import boto3
 import http.cookiejar
 from datetime import datetime
-import base64 # <-- IMPORT ADDED
+import base64 
 from flask import Flask, redirect, render_template, render_template_string, jsonify, request, session, url_for
 from flask_cors import CORS
 import requests
@@ -43,7 +43,6 @@ load_dotenv()
 app = Flask(__name__)
 # CORS(app)
 
-# Use local SQLite DB directly, no env vars
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -577,7 +576,6 @@ class RecipeScraper:
             print("AI parsing (text) failed:", str(e))
             return self.fallback_parse(scraped_data)    
 
-    # --- NEW METHOD FOR VISION ---
     def parse_with_vision(self, image_bytes_list, text_prompt=""):
         if not self.vision_client:
             return "NO_RECIPE_FOUND" # Vision is disabled due to missing key
@@ -614,34 +612,60 @@ EXTRACTION RULES:
 - If no clear recipe exists, return only: "NO_RECIPE_FOUND"
 """
             
-            # 2. Prepare the multimodal content list (image parts + text part)
+            # 2. Prepare the multimodal content list: Process images first.
             content_parts = []
             
             # Add the images first
             for image_bytes in image_bytes_list:
-                # PIL is needed here to determine the correct MIME type
-                # For simplicity, we assume JPEG for uploads, but checking is safer
+                if not image_bytes:
+                    continue
+                
+                # --- START: ROBUST IMAGE PROCESSING (Handles any format) ---
+                processed_image_bytes = None
+                mime_type = 'image/jpeg' 
+                
                 try:
-                    # Attempt to identify the file type
-                    from PIL import Image
                     from io import BytesIO
+                    
+                    # Open the image (PIL handles PNG, JPEG, WebP, etc., automatically)
                     img = Image.open(BytesIO(image_bytes))
-                    mime_type = Image.MIME.get(img.format, 'image/jpeg')
-                except Exception:
-                    # Fallback to default mime type if PIL fails
-                    mime_type = 'image/jpeg' 
+                    
+                    # Fix Orientation (Crucial for mobile photos)
+                    img = ImageOps.exif_transpose(img) 
 
-                content_parts.append(
-                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
-                )
-
+                    # Convert to RGB if necessary (Standardizes color space)
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                        
+                    # Re-save the image to a standardized format (JPEG)
+                    buffer = BytesIO()
+                    img.save(buffer, format='JPEG', quality=90) # Re-encode to clean JPEG
+                    processed_image_bytes = buffer.getvalue()
+                    
+                    # The image is now a clean JPEG in standard format
+                    
+                except Exception as e:
+                    # Log the specific image error but continue if possible
+                    print(f"Error processing uploaded image file in PIL: {e}")
+                    # If we can't process it, we must skip it.
+                    continue 
+                
+                if processed_image_bytes:
+                    content_parts.append(
+                        types.Part.from_bytes(data=processed_image_bytes, mime_type=mime_type)
+                    )
+                # --- END: ROBUST IMAGE PROCESSING ---
+                
+            if not content_parts:
+                 return "NO_RECIPE_FOUND" # No valid image files could be processed
+                 
             # Add the text prompt
             content_parts.append(main_prompt)
 
 
-            # 3. Call the Gemini Vision Model (e.g., gemini-2.5-flash)
+            # 3. Call the Gemini Vision Model
             response = self.vision_client.models.generate_content(
-                model="gemini-2.5-flash", # Excellent balance of cost, speed, and vision capability
+                model="gemini-2.5-flash",
                 contents=content_parts
             )
             
@@ -652,8 +676,6 @@ EXTRACTION RULES:
             print(f"AI parsing (Gemini vision) failed: {str(e)}")
             traceback.print_exc()
             return "NO_RECIPE_FOUND"
-    # --- END RESTORED METHOD ---
-
 
 
     def fallback_parse(self, scraped_data):
