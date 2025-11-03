@@ -729,8 +729,17 @@
             alert('Could not share recipe. Try again later.');
         }
     }
-    // --- END NEW / FIXED FUNCTION ---   // Recipe management functions (kept the same)
-    
+    async function getPrivateRecipeList() {
+        try {
+            // Hitting the new dedicated private endpoint
+            const response = await fetch('/api/recipes/private'); 
+            if (!response.ok) throw new Error('API Error');
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch private recipes:', error);
+            return [];
+        }
+    }
     
     async function getRecipeList() {
         try {
@@ -807,9 +816,12 @@
         return await response.json();
     }
 
+// REPLACE the old async function loadRecipeList() with this:
+
     async function loadRecipeList() {
         try {
-            recipes = await getRecipeList();
+            // *** CRITICAL CHANGE: Load recipes from the new private endpoint ***
+            recipes = await getPrivateRecipeList(); 
             renderRecipeList();
         } catch (error) {
             console.error('Failed to load recipes:', error);
