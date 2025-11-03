@@ -392,12 +392,12 @@ body {
             const date = r.created ? new Date(r.created).toLocaleDateString() : 'Unknown Date';
             const time = r.created ? new Date(r.created).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
             
-                // *** MODIFIED HTML OUTPUT: Removed button, added onclick to li, added arrow ***
+                // *** MODIFIED HTML OUTPUT: Use owner_username instead of owner_id ***
             return `
               <li class="recipe-item" onclick="viewRecipe('${r.filename}', '${r.owner_id}')">
                 <div class="recipe-info">
                   <span class="recipe-name"><i class="fas fa-book-open"></i> ${recipeName}</span>
-                  <span class="recipe-date">Added: ${date} ${time} | Owner: ${r.owner_id}</span>
+                  <span class="recipe-date">Added: ${date} ${time} | Owner: ${r.owner_username}</span>
                 </div>
                 <i class="fas fa-chevron-right view-arrow"></i>
               </li>
