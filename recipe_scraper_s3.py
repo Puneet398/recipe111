@@ -65,6 +65,16 @@ with app.app_context():
     db.create_all()
 
 
+def get_s3_recipe_counts():
+    """Fetches recipe counts from S3 for all users."""
+    try:
+        # list_all_recipes_admin returns a list of recipes and the user_recipe_counts dict
+        _, user_recipe_counts = storage.list_all_recipes_admin() 
+        return user_recipe_counts
+    except Exception as e:
+        print(f"Error fetching S3 counts: {e}")
+        return {}
+
 class S3Storage:
     def __init__(self):
         self.bucket_name = os.getenv('AWS_S3_BUCKET')
@@ -126,6 +136,8 @@ class S3Storage:
             return response.get('Metadata', {}), response.get('LastModified')
         except ClientError:
             return None, None
+        
+
     
 # In class S3Storage:
     def list_recipes(self, user_id):
@@ -960,14 +972,22 @@ def usage_analytics():
         'total_users': user_count
     })
 
+
 @app.route('/api/users')
 def get_users():
+    # 1. Fetch all users from the database
     users = User.query.all()
+    
+    # 2. Fetch the S3 recipe counts (using the helper function above)
+    s3_counts = get_s3_recipe_counts()
+    
+    # 3. Compile the JSON response using the S3 counts
     return jsonify([
         {
             'id': u.id,
             'username': u.username,
-            'recipe_count': len(u.recipes),
+            # Use the count from the s3_counts dictionary, defaulting to 0 if not found
+            'recipe_count': s3_counts.get(str(u.id), 0), 
             'role': u.role 
         } for u in users
     ])
@@ -1160,6 +1180,12 @@ def delete_recipe(filename):
 @app.route('/api/vision', methods=['POST'])
 @login_required
 def process_vision_upload():
+
+    if not current_user.is_authenticated:
+        return jsonify({
+            'error': 'Authentication required. Please log in first.'
+        }), 401
+
     try:
         user_id = current_user.id
         
