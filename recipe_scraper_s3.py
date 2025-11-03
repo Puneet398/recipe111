@@ -1001,10 +1001,11 @@ def index():
 @app.route('/api/recipes')
 @login_required
 def get_recipes():
-    """
-    Get list of all markdown recipe files from S3 bucket with metadata.
-    Includes logic for sharing recipes among users with the 'family' role.
-    """
+    # --- START: NEW BLOCK TO FETCH USERNAME MAP ---
+    # Fetch all users once and create a quick lookup map: { 'user_id': 'username' }
+    user_map = {str(u.id): u.username for u in User.query.all()}
+    # --- END: NEW BLOCK ---
+
     try:
         role = current_user.role.strip().lower()
         user_ids_to_fetch = []
@@ -1012,7 +1013,6 @@ def get_recipes():
         if role == 'family':
             # 1. If 'family', fetch IDs of all users with the same role
             family_users = User.query.filter_by(role='family').all()
-            # Ensure IDs are strings as S3 keys are based on string IDs
             user_ids_to_fetch = [str(u.id) for u in family_users]
         else:
             # 2. Otherwise, only fetch current user's ID
@@ -1023,9 +1023,12 @@ def get_recipes():
             # list_recipes fetches recipes for the given user_id
             recipes = storage.list_recipes(user_id)
             
-            # Augment recipes with the owner's ID for viewing shared recipes later
+            # Augment recipes with the owner's ID and Username for viewing shared recipes later
             for recipe in recipes:
                 recipe['owner_id'] = user_id
+                # --- START: ADD USERNAME ---
+                recipe['owner_username'] = user_map.get(user_id, 'Unknown') # Add username here
+                # --- END: ADD USERNAME ---
             
             all_recipes.extend(recipes)
 
@@ -1036,8 +1039,34 @@ def get_recipes():
 
     except Exception as e:
         print(f"Recipe listing failed: {str(e)}")
-        traceback.print_exc() # Add this for better debugging
+        traceback.print_exc() 
         return jsonify({'error': str(e)}), 500
+    
+
+# Insert this new route into your Flask application (app.py)
+
+@app.route('/api/recipes/private')
+@login_required
+def get_private_recipes():
+    """Returns ONLY the current user's private recipes for the main management page."""
+    try:
+        current_user_id = str(current_user.id)
+        current_username = current_user.username
+        
+        # storage.list_recipes fetches recipes only from the current user's S3 folder
+        recipes = storage.list_recipes(current_user_id)
+        
+        # Augment with owner info (for consistency, even though it's the current user)
+        for recipe in recipes:
+            recipe['owner_id'] = current_user_id
+            recipe['owner_username'] = current_username
+            
+        return jsonify(recipes)
+    except Exception as e:
+        print(f"Private recipe listing failed: {str(e)}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/recipe/save', methods=['POST'])
 @login_required
