@@ -1,557 +1,635 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root {
-  --primary-bg: #fff8f0;
-  --accent: #ff7043;
-  --accent-dark: #e64a19;
-  --text-dark: #2c3e50;
-  --text-light: #666;
-  --card-bg: #ffffff;
-  --sidebar-bg: #3e2723;
-  --sidebar-hover: #ffab91;
+    --primary-bg: #fff8f0;
+    --accent: #ff7043;
+    --accent-dark: #e64a19;
+    --text-dark: #2c3e50;
+    --text-light: #666;
+    --card-bg: #ffffff;
+    --sidebar-bg: #3e2723;
+    --sidebar-hover: #ffab91;
 }
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-  background-color: #1e1e1e;
-  color: #f5f5f5;
-  font-family: 'Poppins', sans-serif;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+    background-color: #1e1e1e;
+    color: #f5f5f5;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 canvas {
-  max-width: 100%;
-  height: 300px;
+    max-width: 100%;
+    height: 300px;
 }
 
 /* Sidebar */
 .sidebar {
-  width: 220px;
-  background-color: #2c2c2c;
-  color: #fff;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  height: 100vh;
-  top: 0;
-  left: 0;
+    width: 220px;
+    background-color: #2c2c2c;
+    color: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    top: 0;
+    left: 0;
 }
 
 .sidebar h2 {
-  font-size: 22px;
-  margin-bottom: 30px;
-  text-align: center;
+    font-size: 22px;
+    margin-bottom: 30px;
+    text-align: center;
 }
 
 .sidebar a {
-  color: #f5f5f5;
-  text-decoration: none;
-  margin: 12px 0;
-  font-weight: 500;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+    color: #f5f5f5;
+    text-decoration: none;
+    margin: 12px 0;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
 }
 
 .sidebar a:hover {
-  background-color: var(--accent);
+    background-color: var(--accent);
 }
 
 .sidebar a.active {
-  background-color: var(--accent);
-  font-weight: bold;
+    background-color: var(--accent);
+    font-weight: bold;
 }
 
 /* Main Content */
 .main {
-  margin-left: 220px;
-  padding: 40px 20px;
-  flex: 1;
-  overflow-y: auto;
+    margin-left: 220px;
+    padding: 40px 20px;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .header h1 {
-  font-size: 28px;
-  color: var(--text-dark);
-  margin-bottom: 6px;
+    font-size: 28px;
+    color: var(--text-dark);
+    margin-bottom: 6px;
 }
 
 .header p {
-  color: var(--text-light);
-  margin-bottom: 20px;
+    color: var(--text-light);
+    margin-bottom: 20px;
 }
 
 /* Card */
 .card {
-  background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  margin-bottom: 30px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: fadeIn 0.6s ease-in-out;
+    background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    margin-bottom: 30px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeIn 0.6s ease-in-out;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
 }
 
 .card h3 {
-  margin-top: 0;
-  font-size: 20px;
-  margin-bottom: 12px;
-  color: #ffffff;
+    margin-top: 0;
+    font-size: 20px;
+    margin-bottom: 12px;
+    color: #ffffff;
 }
 
 .card p,
 .card ul,
 .card li {
-  font-size: 17px;
-  line-height: 1.6;
-  color: #f0f0f0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #f0f0f0;
 }
 
 .card ul {
-  padding-left: 20px;
+    padding-left: 20px;
 }
 
 /* Table */
 table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
 }
 
 th,
 td {
-  padding: 12px;
-  text-align: center;
+    padding: 12px;
+    text-align: center;
 }
 
 .card table {
-  margin-top: 0;
+    margin-top: 0;
 }
 
 .card table th,
 .card table td {
-  font-size: 16px;
-  color: #ffffff;
-  border-bottom: 1px solid #333;
+    font-size: 16px;
+    color: #ffffff;
+    border-bottom: 1px solid #333;
 }
 
 .card table thead {
-  background-color: #2c2c2c;
+    background-color: #2c2c2c;
 }
 
 .card table tbody tr:hover {
-  background-color: #333;
+    background-color: #333;
 }
 
 /* Select Dropdown */
 select {
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background-color: #fff;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #fff;
 }
 
 /* Recipe List */
 .recipe-list {
-  list-style: none;
-  padding: 0;
+    list-style: none;
+    padding: 0;
 }
 
 .recipe-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 15px;
-  margin-bottom: 10px;
-  background-color: #333;
-  border-radius: 8px;
-  border-left: 5px solid var(--accent);
-  transition: background-color 0.2s, transform 0.1s;
-  cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #333;
+    border-radius: 8px;
+    border-left: 5px solid var(--accent);
+    transition: background-color 0.2s, transform 0.1s;
+    cursor: pointer;
 }
 
 .recipe-item:hover {
-  background-color: #3a3a3a;
-  transform: scale(1.01);
+    background-color: #3a3a3a;
+    transform: scale(1.01);
 }
 
 .recipe-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .recipe-content-toggle {
-  width: 100%;
-  margin-top: 10px;
-  padding: 15px;
-  background-color: #111;
-  border-radius: 8px;
-  color: #f5f5f5;
+    width: 100%;
+    margin-top: 10px;
+    padding: 15px;
+    background-color: #111;
+    border-radius: 8px;
+    color: #f5f5f5;
 }
 
 .recipe-content-toggle p,
 .recipe-content-toggle li {
-  color: #f5f5f5;
+    color: #f5f5f5;
+}
+
+/* Utility for button styling */
+.btn-small {
+    padding: 6px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
+.btn-danger:disabled {
+    background-color: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 /* Animation */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .sidebar {
-    position: relative;
-    width: 100%;
-    height: auto;
-    flex-direction: row;
-    justify-content: space-around;
-  }
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        justify-content: space-around;
+    }
 
-  .main {
-    margin-left: 0;
-    padding: 20px;
-  }
+    .main {
+        margin-left: 0;
+        padding: 20px;
+    }
 
-  .sidebar a {
-    margin: 0;
-    font-size: 14px;
-  }
+    .sidebar a {
+        margin: 0;
+        font-size: 14px;
+    }
 
-  .card {
-    padding: 16px;
-  }
+    .card {
+        padding: 16px;
+    }
 
-  .header h1 {
-    font-size: 22px;
-  }
+    .header h1 {
+        font-size: 22px;
+    }
 
-  table,
-  th,
-  td {
-    font-size: 13px;
-  }
+    table,
+    th,
+    td {
+        font-size: 13px;
+    }
 }
 </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h2>Admin Panel</h2>
-    <a href="#" data-target="overview"><i class="fas fa-chart-pie"></i> Dashboard</a>
-    <a href="#" data-target="usage"><i class="fas fa-chart-line"></i> Usage Analytics</a>
-    <a href="#" data-target="recipes"><i class="fas fa-utensils"></i> All Recipes</a>
-    <a href="#" data-target="users"><i class="fas fa-users"></i> Users</a>
-    <a href="/" id="home"><i class="fas fa-home"></i> Home</a>
-    <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a href="#" data-target="overview"><i class="fas fa-chart-pie"></i> Dashboard</a>
+        <a href="#" data-target="usage"><i class="fas fa-chart-line"></i> Usage Analytics</a>
+        <a href="#" data-target="recipes"><i class="fas fa-utensils"></i> All Recipes</a>
+        <a href="#" data-target="users"><i class="fas fa-users"></i> Users</a>
+        <a href="/" id="home"><i class="fas fa-home"></i> Home</a>
+        <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
 
-  </div>
+    </div>
 
-  <div class="main">
-<div class="main">
-    <div class="header">
-        <h1>Welcome, {{ username }} 👋</h1> 
-        <p>You're logged in as <strong>{{ username }}</strong>.</p> 
-    </div>
+    <div class="main">
+        <div class="main">
+            <div class="header">
+                <h1>Welcome, {{ username }} 👋</h1> 
+                <p>You're logged in as <strong>{{ username }}</strong>.</p> 
+            </div>
 
-    <div class="card" id="overview">
-      <h3>📊 Dashboard Overview</h3>
-      <div id="overviewContent">Loading...</div>
-    </div>
+            <div class="card" id="overview">
+                <h3>📊 Dashboard Overview</h3>
+                <div id="overviewContent">Loading...</div>
+            </div>
 
-    <div class="card" id="usage">
-      <h3>📈 Usage Analytics</h3>
-      <div id="usageContent">Loading...</div>
-    </div>
-    <!-- <canvas id="usageChart" style="max-width: 100%; height: 300px;"></canvas> -->
+            <div class="card" id="usage">
+                <h3>📈 Usage Analytics</h3>
+                <div id="usageContent">Loading...</div>
+            </div>
+            
+            <div class="card" id="recipes">
+                <h3>🍽️ All Recipes (Admin View)</h3>
+                <div id="recipeList">
+                    {% if recipes %}
+                    <ul class="recipe-list">
+                        {% for r in recipes %}
+                        <li class="recipe-item" data-filename="{{ r.filename }}" data-user-id="{{ r.user_id }}">
+                            <div class="recipe-item-header">
+                                <div>
+                                    <strong class="recipe-title" style="color: #ff7043;">
+                                        <i class="fas fa-book-open" style="margin-right: 5px;"></i> {{ r.name or 'Unknown Recipe' }} 
+                                    </strong>
+                                    {% set owner = users | selectattr('id', 'equalto', r.user_id | int) | first %}
+                                    <small style="color: #aaa; display: block;">Owner: {{owner.username or 'N/A' }} | Added on {{ r.created | truncate(length=10, killwords=True, end='') }}</small>
+                                </div>
+                                <i class="fas fa-chevron-right" style="color: var(--accent);"></i>
+                            </div>
+                            
+                            <div class="recipe-content-toggle" style="display: none;">
+                                <p>Loading recipe content...</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No recipes found across all users.</p>
+                    {% endif %}
+                </div>
+            </div>
 
-<div class="card" id="recipes">
-    <h3>🍽️ All Recipes (Admin View)</h3>
-    <div id="recipeList">
-      {% if recipes %}
-      <ul class="recipe-list">
-        {% for r in recipes %}
-        <li class="recipe-item" data-filename="{{ r.filename }}" data-user-id="{{ r.user_id }}">
-          <div class="recipe-item-header">
-            <div>
-              <strong class="recipe-title" style="color: #ff7043;">
-                <i class="fas fa-book-open" style="margin-right: 5px;"></i> {{ r.name or 'Unknown Recipe' }} 
-              </strong>
-              {% set owner = users | selectattr('id', 'equalto', r.user_id | int) | first %}
-              <small style="color: #aaa; display: block;">Owner: {{owner.username or 'N/A' }} | Added on {{ r.created | truncate(length=10, killwords=True, end='') }}</small>
-            </div>
-            <i class="fas fa-chevron-right" style="color: var(--accent);"></i>
-          </div>
-          
-          <div class="recipe-content-toggle" style="display: none;">
-              <p>Loading recipe content...</p>
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p>No recipes found across all users.</p>
-      {% endif %}
-    </div>
-</div>
-
-    <div class="card" id="users">
-      <h3>👥 User Activity</h3>
-      <table style="width: 100%; border-collapse: collapse; margin-top: 0;">
-        <thead>
-          <tr>
-            <th style="padding: 12px;">Username</th>
-            <th style="padding: 12px;">Recipes Added</th>
-            <th style="padding: 12px;">Role</th>
-            <!-- <th style="padding: 12px;">Actions</th> -->
-          </tr>
-        </thead>
-        <tbody id="userTableBody">
-          <tr><td colspan="4" style="padding: 12px;">Loading...</td></tr>
-        </tbody>
-      </table>
-    </div>
+            <div class="card" id="users">
+                <h3>👥 User Activity</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 12px;">Username</th>
+                            <th style="padding: 12px;">Recipes Added</th>
+                            <th style="padding: 12px;">Role</th>
+                            <th style="padding: 12px;">Actions</th> </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <tr><td colspan="4" style="padding: 12px;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
 
 
-  </div>
+        </div>
+    </div>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-    const links = document.querySelectorAll('.sidebar a[data-target]');
-    const sections = document.querySelectorAll('.main .card');
+    const links = document.querySelectorAll('.sidebar a[data-target]');
+    const sections = document.querySelectorAll('.main .card');
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadDashboardMetrics();
-      loadUsageAnalytics();
-      // loadRecipeList() is removed because the recipe list is rendered by Flask (Jinja)
-      loadUserTable();
-      
-      // --- Recipe Click Handler ---
-      const recipeListElement = document.querySelector('.recipe-list');
-      if (recipeListElement) {
-          recipeListElement.addEventListener('click', function(e) {
-              const item = e.target.closest('.recipe-item');
-              // Ensure the click targets the entire item or its non-interactive children
-              if (item && !e.target.closest('select')) { 
-                  toggleRecipeContent(item);
-              }
-          });
-      }
-      // ----------------------------
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDashboardMetrics();
+        loadUsageAnalytics();
+        loadUserTable();
+        
+        // --- Recipe Click Handler ---
+        const recipeListElement = document.querySelector('.recipe-list');
+        if (recipeListElement) {
+            recipeListElement.addEventListener('click', function(e) {
+                const item = e.target.closest('.recipe-item');
+                // Ensure the click targets the entire item or its non-interactive children
+                if (item && !e.target.closest('select')) { 
+                    toggleRecipeContent(item);
+                }
+            });
+        }
+        // ----------------------------
+    });
 
-    links.forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('data-target');
-        links.forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-        sections.forEach(section => {
-          section.style.display = section.id === targetId ? 'block' : 'none';
-        });
-      });
-    });
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-target');
+            links.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            sections.forEach(section => {
+                section.style.display = section.id === targetId ? 'block' : 'none';
+            });
+        });
+    });
 
-    sections.forEach(section => {
-      section.style.display = section.id === 'overview' ? 'block' : 'none';
-    });
+    sections.forEach(section => {
+        section.style.display = section.id === 'overview' ? 'block' : 'none';
+    });
 
-    document.querySelector('.sidebar a[data-target="overview"]').classList.add('active');
+    document.querySelector('.sidebar a[data-target="overview"]').classList.add('active');
 
-    // --- Core Functions ---
-    
-    async function loadDashboardMetrics() {
-      try {
-        const res = await fetch('/api/dashboard-metrics');
-        const data = await res.json();
-        document.getElementById('overviewContent').innerHTML = `
-          <ul>
-            <li>Total Recipes: ${data.total_recipes}</li>
-            <li>Active Users: ${data.active_users}</li>
-            <li>Last Sync: ${data.last_sync_time}</li>
-          </ul>
-        `;
-      } catch (err) {
-        document.getElementById('overviewContent').innerText = 'Failed to load metrics.';
-      }
-    }
+    // --- Core Functions ---
+    
+    async function loadDashboardMetrics() {
+        try {
+            const res = await fetch('/api/dashboard-metrics');
+            const data = await res.json();
+            document.getElementById('overviewContent').innerHTML = `
+                <ul>
+                    <li>Total Recipes: ${data.total_recipes}</li>
+                    <li>Active Users: ${data.active_users}</li>
+                    <li>Last Sync: ${data.last_sync_time}</li>
+                </ul>
+            `;
+        } catch (err) {
+            document.getElementById('overviewContent').innerText = 'Failed to load metrics.';
+        }
+    }
 
-    async function loadUsageAnalytics() {
-      try {
-        const res = await fetch('/api/usage-analytics');
-        const data = await res.json();
-        document.getElementById('usageContent').innerHTML = `
-          <ul>
-            <li>Most Scraped Source: ${data.top_source}</li>
-            <li>Popular Folder Tags: ${data.popular_tags.join(', ')}</li>
-            <li>Average Recipes per User: ${data.avg_recipes}</li>
-          </ul>
-        `;
-        // renderUsageChart(data);
-      } catch (err) {
-        document.getElementById('usageContent').innerText = 'Failed to load analytics.';
-      }
-    }
+    async function loadUsageAnalytics() {
+        try {
+            const res = await fetch('/api/usage-analytics');
+            const data = await res.json();
+            document.getElementById('usageContent').innerHTML = `
+                <ul>
+                    <li>Most Scraped Source: ${data.top_source}</li>
+                    <li>Popular Folder Tags: ${data.popular_tags.join(', ')}</li>
+                    <li>Average Recipes per User: ${data.avg_recipes}</li>
+                </ul>
+            `;
+            // renderUsageChart(data);
+        } catch (err) {
+            document.getElementById('usageContent').innerText = 'Failed to load analytics.';
+        }
+    }
 
-    function renderUsageChart(data) {
-      const ctx = document.getElementById('usageChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Scraped Recipes', 'Manual Recipes', 'Favorites'],
-          datasets: [{
-            data: [data.scraped_count || 40, data.manual_count || 20, data.favorites_count || 10],
-            backgroundColor: ['#ff7043', '#ffa726', '#66bb6a'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'bottom' },
-            tooltip: { enabled: true }
-          }
-        }
-      });
-    }
+    function renderUsageChart(data) {
+        const ctx = document.getElementById('usageChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Scraped Recipes', 'Manual Recipes', 'Favorites'],
+                datasets: [{
+                    data: [data.scraped_count || 40, data.manual_count || 20, data.favorites_count || 10],
+                    backgroundColor: ['#ff7043', '#ffa726', '#66bb6a'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+    }
 
-    // --- Function to toggle and fetch recipe content ---
-    async function toggleRecipeContent(recipeItem) {
-        const filename = recipeItem.getAttribute('data-filename');
-        const userId = recipeItem.getAttribute('data-user-id');
-        const contentDiv = recipeItem.querySelector('.recipe-content-toggle');
-        const arrowIcon = recipeItem.querySelector('.fas.fa-chevron-right');
+    // --- Function to toggle and fetch recipe content ---
+    async function toggleRecipeContent(recipeItem) {
+        const filename = recipeItem.getAttribute('data-filename');
+        const userId = recipeItem.getAttribute('data-user-id');
+        const contentDiv = recipeItem.querySelector('.recipe-content-toggle');
+        const arrowIcon = recipeItem.querySelector('.fas.fa-chevron-right');
 
-        if (contentDiv.style.display === 'block') {
-            // Hide content if already visible (collapse feature)
-            contentDiv.style.display = 'none';
-            arrowIcon.style.transform = 'rotate(0deg)';
-            return;
-        }
+        if (contentDiv.style.display === 'block') {
+            // Hide content if already visible (collapse feature)
+            contentDiv.style.display = 'none';
+            arrowIcon.style.transform = 'rotate(0deg)';
+            return;
+        }
 
-        // Show content area and loading message
-        contentDiv.style.display = 'block';
-        contentDiv.innerHTML = '<p style="color: var(--accent);">⏳ Loading recipe content...</p>';
-        arrowIcon.style.transform = 'rotate(90deg)';
+        // Show content area and loading message
+        contentDiv.style.display = 'block';
+        contentDiv.innerHTML = '<p style="color: var(--accent);">⏳ Loading recipe content...</p>';
+        arrowIcon.style.transform = 'rotate(90deg)';
 
-        try {
-            // Fetch content, passing the userId as a query parameter for admin cross-user access
-            // Note: The backend expects 'owner_id' for shared access, but the dashboard uses 'user_id' in data attributes.
-            const res = await fetch(`/api/recipe/${filename}?owner_id=${userId}`);
-            
-            if (!res.ok) {
-                if (res.status === 401 || res.status === 403) {
-                    throw new Error(`Unauthorized access to this recipe.`);
-                }
-                throw new Error(`HTTP error! Status: ${res.status}`);
-            }
+        try {
+            // Fetch content, passing the userId as a query parameter for admin cross-user access
+            const res = await fetch(`/api/recipe/${filename}?owner_id=${userId}`);
+            
+            if (!res.ok) {
+                if (res.status === 401 || res.status === 403) {
+                    throw new Error(`Unauthorized access to this recipe.`);
+                }
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
 
-            const data = await res.json();
-            const markdownContent = data.content || "Recipe content is empty.";
+            const data = await res.json();
+            const markdownContent = data.content || "Recipe content is empty.";
 
-            // Convert Markdown content to HTML using marked.parse()
-            const htmlContent = marked.parse(markdownContent); 
+            // Convert Markdown content to HTML using marked.parse()
+            const htmlContent = marked.parse(markdownContent); 
 
-            // Update the content div with the rendered HTML
-            contentDiv.innerHTML = htmlContent;
+            // Update the content div with the rendered HTML
+            contentDiv.innerHTML = htmlContent;
 
-        } catch (err) {
-            console.error('Error fetching recipe content:', err);
-            contentDiv.innerHTML = `<p style="color: salmon;">❌ Failed to load recipe: ${err.message}</p>`;
-        }
-    }
+        } catch (err) {
+            console.error('Error fetching recipe content:', err);
+            contentDiv.innerHTML = `<p style="color: salmon;">❌ Failed to load recipe: ${err.message}</p>`;
+        }
+    }
 // ---------------------------------------------------------------------
 
+// --- User Management Logic ---
+
+// Variable to hold the current user ID for disabling self-deletion button
+const CURRENT_USER_ID = parseInt("{{ current_user.id }}"); 
 
 async function loadUserTable() {
-    try {
-        const res = await fetch('/api/users'); // Fetches user data
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const users = await res.json();
-        const tbody = document.getElementById('userTableBody');
-        
-        tbody.innerHTML = users.map(u => `
-            <tr>
-                <td style="padding: 14px;">${u.username}</td>
-                <td style="padding: 14px;">${u.recipe_count}</td>
-                <td style="padding: 14px;">
-                    <select id="role-${u.id}" onchange="updateUserRole(${u.id}, this.value)">
-                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-                        <option value="family" ${u.role === 'family' ? 'selected' : ''}>Family</option>
-                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
-                    </select>
-                    <span id="status-${u.id}" style="margin-left: 10px; font-size: 12px;"></span> </td>
-            </tr>
-        `).join('');
-    } catch (err) {
-        console.error('Failed to load users:', err); // Log the error
-        document.getElementById('userTableBody').innerHTML = `<tr><td colspan="3" style="padding: 14px;">Failed to load users. Check console for details.</td></tr>`;
-    }
+    try {
+        const res = await fetch('/api/users'); 
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const users = await res.json();
+        const tbody = document.getElementById('userTableBody');
+        
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td style="padding: 14px;">${u.username}</td>
+                <td style="padding: 14px;">${u.recipe_count}</td>
+                <td style="padding: 14px;">
+                    <select id="role-${u.id}" onchange="updateUserRole(${u.id}, this.value)">
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        <option value="family" ${u.role === 'family' ? 'selected' : ''}>Family</option>
+                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+                    </select>
+                    <span id="status-${u.id}" style="margin-left: 10px; font-size: 12px;"></span> 
+                </td>
+                <td style="padding: 14px;">
+                    <button class="btn-small btn-danger" 
+                            onclick="deleteUser(${u.id}, '${u.username}')" 
+                            title="Delete User"
+                            ${u.id === CURRENT_USER_ID ? 'disabled' : ''}> 🗑️
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error('Failed to load users:', err);
+        document.getElementById('userTableBody').innerHTML = `<tr><td colspan="4" style="padding: 14px;">Failed to load users. Check console for details.</td></tr>`;
+    }
 }
 
+// --- NEW Delete User Functions ---
+
+function deleteUser(userId, username) {
+    if (userId === CURRENT_USER_ID) {
+        alert("You cannot delete your own active account.");
+        return;
+    }
+    
+    // Simple browser confirmation
+    if (confirm(`Are you absolutely sure you want to permanently delete the user: ${username}? This will delete their recipes and cannot be undone.`)) {
+        confirmDeleteUser(userId);
+    }
+}
+
+async function confirmDeleteUser(userId) {
+    const statusEl = document.getElementById(`status-${userId}`);
+    const originalText = statusEl.textContent;
+    statusEl.textContent = '🗑️ Deleting...';
+    statusEl.style.color = '#ff7043';
+    
+    try {
+        const res = await fetch(`/api/users/${userId}`, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || `HTTP error! Status: ${res.status}`);
+        }
+
+        statusEl.textContent = '✅ Deleted';
+        statusEl.style.color = 'lightgreen';
+        
+        // Reload the user table immediately after successful deletion
+        loadUserTable(); 
+
+    } catch (err) {
+        console.error('Failed to delete user:', err);
+        statusEl.textContent = '❌ Failed';
+        statusEl.style.color = 'salmon';
+        alert(`Error deleting user: ${err.message}`);
+
+    } finally {
+        setTimeout(() => { statusEl.textContent = originalText; }, 3000);
+    }
+}
+
+
 async function updateUserRole(userId, newRole) {
-     const statusEl = document.getElementById(`status-${userId}`); // Get the status span
-     statusEl.textContent = '⏳ Saving...'; // Show saving message
-     statusEl.style.color = '#aaa'; // Default color
-     try {
-       const res = await fetch('/api/update-role', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ user_id: userId, new_role: newRole })
-       });
+    const statusEl = document.getElementById(`status-${userId}`); // Get the status span
+    statusEl.textContent = '⏳ Saving...'; // Show saving message
+    statusEl.style.color = '#aaa'; // Default color
+    try {
+        const res = await fetch('/api/update-role', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, new_role: newRole })
+        });
 
-       const result = await res.json();
-       
-       if (res.ok) {
-         statusEl.textContent = '✅ Updated';
-         statusEl.style.color = 'lightgreen';
-       } else {
-         statusEl.textContent = `❌ Failed: ${result.error || 'Unknown error'}`;
-         statusEl.style.color = 'salmon';
-       }
-       // Clear the status message after a few seconds
-       setTimeout(() => { statusEl.textContent = ''; }, 3000); 
+        const result = await res.json();
+        
+        if (res.ok) {
+            statusEl.textContent = '✅ Updated';
+            statusEl.style.color = 'lightgreen';
+        } else {
+            statusEl.textContent = `❌ Failed: ${result.error || 'Unknown error'}`;
+            statusEl.style.color = 'salmon';
+        }
+        // Clear the status message after a few seconds
+        setTimeout(() => { statusEl.textContent = ''; }, 3000); 
 
-     } catch (err) {
-       console.error('Error updating role:', err); // Log the error
-       statusEl.textContent = '❌ Error';
-       statusEl.style.color = 'salmon';
-       setTimeout(() => { statusEl.textContent = ''; }, 3000);
-     }
-   }
-  </script>
+    } catch (err) {
+        console.error('Error updating role:', err); // Log the error
+        statusEl.textContent = '❌ Error';
+        statusEl.style.color = 'salmon';
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    }
+}
+</script>
 </body>
 </html>
