@@ -1030,6 +1030,51 @@ def save_recipe():
         return jsonify({'error': str(e)}), 500
     
 
+# --- ADD THIS ROUTE TO YOUR FLASK APP (app.py) ---
+
+@app.route('/recipe/<filename>')
+def view_public_recipe(filename):
+    """
+    Public route to view a recipe. This bypasses login_required.
+    SECURITY NOTE: This exposes the recipe if a user knows the filename.
+    A better approach uses a UUID or short code for security.
+    """
+    # For simplicity, we assume 'admin' is the owner, as they have access to all
+    # For a proper fix, you would need to lookup the recipe in a database 
+    # to find the original owner's ID based on the filename.
+
+    # TEMPORARY FIX: Try to guess the owner by checking if it's in the current user's or the first family member's S3 path.
+    # THIS IS NOT ROBUST. For now, we just deny unauthorized access.
+    
+    # We must prevent unauthorized guessing of the owner_id if we don't have a secure lookup.
+    # To enable simple public viewing, you need a mechanism to map the filename to a content string 
+    # that doesn't require an owner ID. Since S3 is partitioned by user_id, a clean public 
+    # view without authentication is complicated.
+
+    # Since the frontend assumes this works, we'll try to find the recipe in the first user's path.
+    # --- This fallback is too complex and risky without a proper DB structure. ---
+    
+    # Let's return the content directly, mimicking the API but without login.
+    # You MUST replace this logic with a **secure recipe lookup** if you deploy this publicly.
+
+    # To get this working *for testing*, we will redirect the user to log in if they are not.
+    # This maintains the login requirement but gives the link a clear purpose.
+    if not current_user.is_authenticated:
+        # Redirects to login page if user tries to access a recipe publicly
+        return redirect(url_for('auth.login', next=request.path))
+
+    # If logged in, use the existing secured endpoint logic by redirecting to it
+    # We need the owner_id, which we don't have here.
+    # This is why the frontend logic must be the main focus for now.
+    
+    # Since the current frontend link is designed to copy an internal path, 
+    # we will rely on the user being logged in to click the copied link.
+    
+    return redirect(url_for('get_recipe_content', filename=filename, owner_id=current_user.id))
+
+# --- DO NOT ADD THIS PUBLIC ROUTE YET, FOCUS ON JAVASCRIPT ---
+# The best approach for now is the JavaScript clipboard fix above.
+
 @app.route('/api/recipe/<filename>')
 @login_required
 def get_recipe_content(filename):
